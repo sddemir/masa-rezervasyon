@@ -1,0 +1,4 @@
+.align_center {
+  display: flex;
+  justify-content: space-between;
+}

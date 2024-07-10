@@ -1,0 +1,48 @@
+.custom-navbar {
+  padding: 10px 20px;
+}
+
+.navbar_heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.navbar_search {
+  width: 200px; /* Adjust width as needed */
+}
+
+.search_button {
+  margin-left: 10px; /* Add margin between input and button */
+}
+
+.navbar_links {
+  display: flex;
+  justify-content: flex-end; /* Align links to the right */
+  flex-grow: 1; /* Expand to fill remaining space */
+}
+
+.navbar_links .nav-link {
+  font-size: 1rem;
+  color: #007bff;
+  text-decoration: none;
+  margin: 0 10px; /* Adjust margin between links */
+}
+
+.navbar_links .nav-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .navbar_form {
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar_search {
+    width: 150px; /* Adjust width as needed for small screens */
+  }
+
+  .search_button {
+    margin-left: 5px; /* Adjust margin for small screens */
+  }
+}

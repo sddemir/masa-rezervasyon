@@ -8,10 +8,12 @@ const Day = ({
   onButtonClick1,
   onButtonClick2,
   isCurrentDay,
+  number,
 }) => {
   const formattedDate = date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
   });
 
   return (
@@ -19,23 +21,17 @@ const Day = ({
       className={`day-card text-center ${isCurrentDay ? "current-day" : ""}`}
     >
       <Card.Body>
-        <Card.Title>{dayName}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">
-          {formattedDate}
-        </Card.Subtitle>
-        <Button
-          variant="primary"
-          onClick={onButtonClick1}
-          className="day-button mr-2"
-        >
-          Button 1
+        <Card.Title>
+          {dayName} - {formattedDate}
+        </Card.Title>
+        <Card.Text>
+          <strong>Number: {number}</strong>
+        </Card.Text>
+        <Button variant="primary" onClick={onButtonClick1} className="mr-2">
+          Güncelle
         </Button>
-        <Button
-          variant="secondary"
-          onClick={onButtonClick2}
-          className="day-button"
-        >
-          Button 2
+        <Button variant="danger" onClick={onButtonClick2}>
+          Sil
         </Button>
       </Card.Body>
     </Card>

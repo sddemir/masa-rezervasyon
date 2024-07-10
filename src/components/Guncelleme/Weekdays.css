@@ -36,3 +36,20 @@
 .week-navigation span {
   font-size: 1.2rem;
 }
+.weekdays-container {
+  padding-top: 20px;
+}
+
+.week-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.week-navigation button {
+  margin: 0 10px;
+}
+
+.week-navigation span {
+  font-size: 1.2rem;
+}

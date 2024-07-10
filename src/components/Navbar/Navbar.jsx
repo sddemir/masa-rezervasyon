@@ -20,7 +20,7 @@ const Navbar = () => {
       <BootstrapNavbar.Brand href="#" className="navbar_heading">
         Yaşar Bilgi MRS
       </BootstrapNavbar.Brand>
-      <Form inline className="mr-sm-2 navbar_form align_center">
+      <Form className="form-inline mr-sm-2 navbar_form align_center">
         <FormControl
           type="text"
           placeholder="Search"

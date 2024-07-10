@@ -5,6 +5,12 @@
 .navbar_heading {
   font-size: 1.5rem;
   font-weight: bold;
+  display: flex;
+  align-items: center; /* Align items vertically */
+}
+
+.user-icon {
+  margin-right: 10px; /* Add margin to separate icon from text */
 }
 
 .navbar_search {

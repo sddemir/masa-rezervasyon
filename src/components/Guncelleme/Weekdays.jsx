@@ -10,9 +10,11 @@ const Weekdays = () => {
 
   const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
   const [numbers, setNumbers] = useState({});
+  const [nextWeekVisible, setNextWeekVisible] = useState(false);
 
   useEffect(() => {
     fetchNumbers();
+    checkNextWeekVisibility(currentMonday);
   }, [currentMonday]);
 
   function getMonday(date) {
@@ -42,14 +44,16 @@ const Weekdays = () => {
 
   const handlePrevWeek = () => {
     const prevMonday = new Date(currentMonday);
-    prevMonday.setDate(currentMonday.getDate() - 7);
+    prevMonday.setDate(prevMonday.getDate() - 7);
     setCurrentMonday(prevMonday);
+    checkNextWeekVisibility(prevMonday);
   };
 
   const handleNextWeek = () => {
     const nextMonday = new Date(currentMonday);
-    nextMonday.setDate(currentMonday.getDate() + 7);
+    nextMonday.setDate(nextMonday.getDate() + 7);
     setCurrentMonday(nextMonday);
+    checkNextWeekVisibility(nextMonday);
   };
 
   const weekDates = getCurrentWeekDates(currentMonday);
@@ -75,19 +79,39 @@ const Weekdays = () => {
     // Add your submission logic here
   };
 
+  const checkNextWeekVisibility = (currentMondayDate) => {
+    const today = new Date();
+    const nextFriday = new Date(currentMondayDate);
+    nextFriday.setDate(currentMondayDate.getDate() + 4); // Assuming Friday is 4 days after Monday
+
+    if (today >= nextFriday) {
+      setNextWeekVisible(true);
+    } else {
+      setNextWeekVisible(false);
+    }
+  };
+
+  const isCurrentWeek =
+    currentMonday.getTime() === getMonday(new Date()).getTime();
+  const isPastWeek = currentMonday < getMonday(new Date());
+
   return (
     <Container>
       <Container className="weekdays-container">
         <div className="week-navigation text-center mb-4">
-          <Button variant="outline-primary" onClick={handlePrevWeek}>
-            &lt;
-          </Button>
+          {isPastWeek && (
+            <Button variant="outline-primary" onClick={handlePrevWeek}>
+              &lt;
+            </Button>
+          )}
           <span className="mx-3">
             {formatDateRange(weekDates[0], weekDates[4])}
           </span>
-          <Button variant="outline-primary" onClick={handleNextWeek}>
-            &gt;
-          </Button>
+          {nextWeekVisible && (
+            <Button variant="outline-primary" onClick={handleNextWeek}>
+              &gt;
+            </Button>
+          )}
         </div>
         <Row className="justify-content-center">
           {days.map((day, index) => (
@@ -110,3 +134,5 @@ const Weekdays = () => {
 };
 
 export default Weekdays;
+
+//I wanna be able to get back to the current week once im at the past weeks but i dont want to see future weeks if its not current week's friday. Please fix itt

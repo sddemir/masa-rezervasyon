@@ -7,8 +7,11 @@ const Day = ({
   date,
   onButtonClick1,
   onButtonClick2,
+  onGuncelleClick,
+  onSilClick,
   isCurrentDay,
   number,
+  disableButtons,
 }) => {
   const formattedDate = date.toLocaleDateString(undefined, {
     day: "2-digit",
@@ -27,10 +30,19 @@ const Day = ({
         <Card.Text>
           <strong>Number: {number}</strong>
         </Card.Text>
-        <Button variant="primary" onClick={onButtonClick1} className="mr-2">
+        <Button
+          variant="primary"
+          onClick={() => onGuncelleClick(dayName)}
+          className="mr-2"
+          disabled={disableButtons}
+        >
           Güncelle
         </Button>
-        <Button variant="danger" onClick={onButtonClick2}>
+        <Button
+          variant="danger"
+          onClick={() => onSilClick(dayName)}
+          disabled={disableButtons}
+        >
           Sil
         </Button>
       </Card.Body>

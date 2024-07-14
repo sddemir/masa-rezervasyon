@@ -36,10 +36,10 @@ const Navbar = () => {
           <Link title="Home" link="/" className="nav-link" />
           <Link
             title="Rezervazyonlar"
-            link="/Guncelleme"
+            link="/guncelleme"
             className="nav-link"
           />
-          <Link title="Çalışanlar" link="/çalışanlar" className="nav-link" />
+          <Link title="Çalışanlar" link="/worker" className="nav-link" />
           <Link title="Ayarlar" link="/ayarlar" className="nav-link" />
           <Link title="Çıkış" link="/çıkış" className="nav-link" />
         </Nav>

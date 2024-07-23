@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Form, ListGroup } from "react-bootstrap";
+import { Container, Row, Col, Button } from "react-bootstrap";
+import { listReservations } from "../../../services/userService"; // Import listReservations
+import Day from "../../shared/Day";
 import axios from "axios";
-import Day from "./Day";
-import FormComponent from "./Form";
+import FormComponent from "../../shared/Form";
 import "./Weekdays.css";
 
 const Weekdays = () => {
@@ -16,10 +17,37 @@ const Weekdays = () => {
   const [silModeOptions, setSilModeOptions] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [calisanlar, setCalisanlar] = useState([]);
-  const [departmanlar, setDepartmanlar] = useState([]);
   const [odalar, setOdalar] = useState([]);
-  const [masalar, setMasalar] = useState([]);
-  const [reservationData, setReservationData] = useState([]);
+
+  const fetchCalisanlar = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/users");
+      const formattedData = response.data.map((calisan) => ({
+        ...calisan,
+        name: `${calisan.first_name} ${calisan.last_name}`,
+      }));
+      setCalisanlar(formattedData);
+    } catch (error) {
+      console.error("Error fetching calisanlar:", error);
+      setCalisanlar([]); // Set empty array in case of error
+    }
+  };
+
+  const fetchOdalar = async () => {
+    try {
+      // Simulate a delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Mock data
+      const mockOdalar = [
+        { id: 1, name: "Meeting Room 1" },
+        { id: 2, name: "Office 101" },
+      ];
+      setOdalar(mockOdalar);
+    } catch (error) {
+      console.error("Error fetching odalar:", error);
+      setOdalar([]); // Set empty array in case of error
+    }
+  };
 
   useEffect(() => {
     const today = new Date();
@@ -28,6 +56,11 @@ const Weekdays = () => {
     } else {
       setCurrentMonday(getMonday(today));
     }
+  }, []);
+
+  useEffect(() => {
+    fetchCalisanlar();
+    fetchOdalar();
   }, []);
 
   useEffect(() => {
@@ -57,10 +90,30 @@ const Weekdays = () => {
 
   const fetchNumbers = async () => {
     try {
-      const response = await axios.get("/your-backend-endpoint", {
-        params: { startDate: currentMonday },
+      const startDate = new Date(currentMonday);
+      const endDate = new Date(currentMonday);
+      endDate.setDate(endDate.getDate() + 6); // Set end date to 6 days after the start date
+
+      const response = await listReservations({
+        startDate: startDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        endDate: endDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
       });
-      setNumbers(response.data);
+
+      const reservations = response.data;
+      const reservationCounts = {};
+
+      // Initialize reservation counts for each day of the week
+      days.forEach((day) => (reservationCounts[day] = 0));
+
+      reservations.forEach((reservation) => {
+        const reservationDate = new Date(reservation.reservationDate);
+        const reservationDay = days[reservationDate.getDay() - 1];
+        if (reservationCounts[reservationDay] !== undefined) {
+          reservationCounts[reservationDay]++;
+        }
+      });
+
+      setNumbers(reservationCounts);
     } catch (error) {
       console.error("Error fetching numbers:", error);
     }
@@ -105,7 +158,7 @@ const Weekdays = () => {
     console.log(`Sil clicked for ${day}`);
     setSilMode(true);
     setSelectedDay(day);
-    setFormVisible(false); // Hide FormComponent if Sil is clicked
+    setFormVisible(true); // Show FormComponent if Sil is clicked
   };
 
   const handleSelectChange = (event, type) => {
@@ -137,11 +190,7 @@ const Weekdays = () => {
     const nextFriday = new Date(currentMondayDate);
     nextFriday.setDate(currentMondayDate.getDate() + 4); // Assuming Friday is 4 days after Monday
 
-    if (today >= nextFriday) {
-      setNextWeekVisible(true);
-    } else {
-      setNextWeekVisible(false);
-    }
+    setNextWeekVisible(today >= nextFriday);
   };
 
   const isCurrentWeek =
@@ -181,101 +230,28 @@ const Weekdays = () => {
                 onSilClick={() => handleSilClick(day)}
                 isCurrentDay={day === days[new Date().getDay() - 1]}
                 number={numbers[day] || 0}
-                disableButtons={isPastWeek && isSaturdayOrLater}
+                isPastWeek={isPastWeek}
               />
             </Col>
           ))}
         </Row>
-      </Container>
-      {formVisible && <FormComponent onSubmit={handleFormSubmit} />}
-      {silMode && (
-        <div className="sil-mode-options">
-          <Button
-            variant="primary"
-            onClick={() => setSilModeOptions("calisan")}
-          >
-            Çalışana Göre
-          </Button>
-          <Button variant="secondary" onClick={() => setSilModeOptions("masa")}>
-            Masaya Göre
-          </Button>
+        <div className="text-center">
+          {isPastWeek && !formVisible && (
+            <p className="mt-3">Güncelleme ve Silme işlemleri mevcut değil.</p>
+          )}
         </div>
-      )}
-      {silModeOptions === "calisan" && (
-        <Form.Group>
-          <Form.Label>Çalışanlar</Form.Label>
-          <Form.Control
-            as="select"
-            onChange={(e) => handleSelectChange(e, "calisan")}
-          >
-            {calisanlar.map((calisan) => (
-              <option key={calisan.id} value={calisan.id}>
-                {calisan.name}
-              </option>
-            ))}
-          </Form.Control>
-        </Form.Group>
-      )}
-      {silModeOptions === "masa" && (
-        <>
-          <Form.Group>
-            <Form.Label>Departmanlar</Form.Label>
-            <Form.Control
-              as="select"
-              onChange={(e) => handleSelectChange(e, "departman")}
-            >
-              {departmanlar.map((departman) => (
-                <option key={departman.id} value={departman.id}>
-                  {departman.name}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Odalar</Form.Label>
-            <Form.Control
-              as="select"
-              onChange={(e) => handleSelectChange(e, "oda")}
-            >
-              {odalar.map((oda) => (
-                <option key={oda.id} value={oda.id}>
-                  {oda.name}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Masalar</Form.Label>
-            <Form.Control
-              as="select"
-              onChange={(e) => handleSelectChange(e, "masa")}
-            >
-              {masalar.map((masa) => (
-                <option key={masa.id} value={masa.id}>
-                  {masa.name}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-        </>
-      )}
-      {reservationData.length > 0 && (
-        <Container className="mt-4">
-          <h5>Reservation Data</h5>
-          <ListGroup>
-            {reservationData.map((reservation) => (
-              <ListGroup.Item key={reservation.id}>
-                {reservation.data}
-                <Button
-                  variant="danger"
-                  onClick={() => handleDeleteReservation(reservation.id)}
-                >
-                  Sil
-                </Button>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        </Container>
+      </Container>
+      {formVisible && (
+        <FormComponent
+          onSubmit={handleFormSubmit}
+          silMode={silMode}
+          includeCalisanSelect={true}
+          calisanlar={calisanlar}
+          odalar={odalar}
+          selectedDay={selectedDay}
+          onSelectChange={handleSelectChange}
+          onDelete={handleDeleteReservation}
+        />
       )}
     </Container>
   );

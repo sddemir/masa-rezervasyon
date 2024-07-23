@@ -26,6 +26,7 @@ export const deleteDesk = (deskId) =>
 
 // Reservation API Endpoints
 export const listReservations = () => axios.get(RESERVATIONS_API_URL);
+
 export const getReservation = (reservationId) =>
   axios.get(`${RESERVATIONS_API_URL}/${reservationId}`);
 export const createReservation = (reservation) =>
@@ -37,3 +38,8 @@ export const deleteReservation = (reservationId) =>
 // Example: Filter reservations by userId
 export const listReservationsByUser = (userId) =>
   axios.get(`${RESERVATIONS_API_URL}?userId=${userId}`);
+// export const listReservationsByUser = (userId) => {
+//   const url = `${RESERVATIONS_API_URL}?userId=${userId}`;
+//   console.log("Making API request to:", url); // Add this line for debugging
+//   return axios.get(url);
+// };

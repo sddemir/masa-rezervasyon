@@ -3,10 +3,7 @@ import { Container, Row, Col, Button, Alert } from "react-bootstrap";
 import Day from "../../shared/Day";
 import FormComponent from "./FormComponent";
 import "./WorkerWeekdays.css";
-import {
-  listReservations,
-  deleteReservation,
-} from "../../../services/userService";
+import { listReservations } from "../../../services/userService";
 
 const WorkerWeekdays = ({ userId }) => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -34,9 +31,21 @@ const WorkerWeekdays = ({ userId }) => {
           (reservation) => reservation.userId === userId
         );
         setFilteredReservations(userReservations);
+
+        // Calculate reservation counts
+        const reservationCounts = {};
+        response.data.forEach((reservation) => {
+          const reservationDate = new Date(reservation.reservationDate);
+          const dayName = days[reservationDate.getDay() - 1]; // Adjust based on your day names
+          if (dayName) {
+            reservationCounts[dayName] = (reservationCounts[dayName] || 0) + 1;
+          }
+        });
+        setNumbers(reservationCounts);
       } else {
         setReservations([]);
         setFilteredReservations([]);
+        setNumbers({});
       }
     } catch (error) {
       console.error("Error fetching reservations:", error);

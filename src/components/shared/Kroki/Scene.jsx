@@ -1,30 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import Table from "./Table";
 import Chair from "./Chair";
+import { listDesksWithStatus } from "../../../services/userService";
 
-const Scene = ({ selectedOda, onChairSelect }) => {
-  const [selectedChair, setSelectedChair] = useState(null);
+const Scene = ({ selectedOda, onChairSelect, selectedDate }) => {
+  const [desks, setDesks] = useState([]);
+  const [selectedChair, setSelectedChair] = useState(null); // Define selectedChair state
+
+  useEffect(() => {
+    const fetchDesks = async () => {
+      try {
+        const desksWithStatus = await listDesksWithStatus(selectedDate);
+        setDesks(desksWithStatus);
+      } catch (error) {
+        console.error("Error fetching desk statuses:", error);
+      }
+    };
+
+    fetchDesks();
+  }, [selectedDate]);
 
   const handleChairClick = (chairId) => {
-    setSelectedChair(chairId);
-    onChairSelect(chairId);
+    const chair = desks.find((desk) => desk.id === chairId);
+    if (!chair.isReserved) {
+      setSelectedChair(chairId); // Update selectedChair
+      onChairSelect(chairId);
+    }
   };
 
   const chairsPerTable = (tablePosition, startNumber, chairPositions) => {
-    return chairPositions.map((positionOffset, index) => (
-      <Chair
-        key={startNumber + index}
-        position={[
-          tablePosition[0] + positionOffset[0],
-          tablePosition[1] + positionOffset[1],
-          tablePosition[2] + positionOffset[2],
-        ]}
-        number={startNumber + index}
-        isSelected={selectedChair === startNumber + index}
-        onSelect={handleChairClick}
-      />
-    ));
+    return chairPositions.map((positionOffset, index) => {
+      const chairId = startNumber + index;
+      const chair = desks.find((desk) => desk.id === chairId);
+
+      return (
+        <Chair
+          key={chairId}
+          position={[
+            tablePosition[0] + positionOffset[0],
+            tablePosition[1] + positionOffset[1],
+            tablePosition[2] + positionOffset[2],
+          ]}
+          number={chairId}
+          isSelected={chairId === selectedChair} // Use selectedChair
+          isDisabled={chair?.isReserved || false}
+          onSelect={handleChairClick}
+        />
+      );
+    });
   };
 
   return (
@@ -46,6 +70,7 @@ const Scene = ({ selectedOda, onChairSelect }) => {
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 20, 10]} angle={0.15} penumbra={1} />
 
+        {/* Tables and Chairs */}
         <Table position={[-10, 15, 15]} size={[6, 1, 4]} />
         {chairsPerTable([-10, 15, 15], 1, [
           [-2.5, 0, 2.5],

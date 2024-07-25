@@ -1,14 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Alert } from "react-bootstrap";
-import { createReservation } from "../../../services/userService";
+import {
+  createReservation,
+  listReservations,
+} from "../../../services/userService";
 import Scene from "../../shared/Kroki/Scene";
 
 const FormComponent = ({ onSubmit, userId, selectedDate }) => {
-  // Add selectedDate prop
   const [selectedOda, setSelectedOda] = useState("");
   const [selectedChair, setSelectedChair] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [reservations, setReservations] = useState([]);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const response = await listReservations();
+        setReservations(response.data);
+      } catch (error) {
+        console.error("Error fetching reservations:", error);
+        setError("Error fetching reservations");
+      }
+    };
+
+    fetchReservations();
+  }, []);
 
   const handleChairSelect = (chairId) => {
     setSelectedChair(chairId);
@@ -26,14 +43,43 @@ const FormComponent = ({ onSubmit, userId, selectedDate }) => {
       return;
     }
 
+    const reservationDate = selectedDate.toISOString().split("T")[0];
+
+    // Check if the user already has a reservation for the selected date
+    const userReservation = reservations.find(
+      (reservation) =>
+        reservation.userId === userId &&
+        reservation.reservationDate === reservationDate
+    );
+
+    if (userReservation) {
+      setError("You already have a reservation for this date.");
+      setSuccess(false);
+      return;
+    }
+
+    // Check if the chair is already reserved for the selected date
+    const existingReservation = reservations.find(
+      (reservation) =>
+        reservation.deskId === selectedChair &&
+        reservation.reservationDate === reservationDate
+    );
+
+    if (existingReservation) {
+      setError("This chair is already reserved for the selected date.");
+      setSuccess(false);
+      return;
+    }
+
     const reservationData = {
       deskId: selectedChair,
       userId: userId,
-      reservationDate: selectedDate.toISOString().split("T")[0], // Use selectedDate here
+      reservationDate: reservationDate,
     };
 
     try {
-      await createReservation(reservationData);
+      const response = await createReservation(reservationData);
+      setReservations([...reservations, response.data]);
       setSuccess(true);
       setError(null);
       onSubmit(reservationData);
@@ -76,7 +122,16 @@ const FormComponent = ({ onSubmit, userId, selectedDate }) => {
           </div>
         </Form.Group>
         {selectedOda && (
-          <Scene selectedOda={selectedOda} onChairSelect={handleChairSelect} />
+          <Scene
+            selectedOda={selectedOda}
+            onChairSelect={handleChairSelect}
+            selectedDate={selectedDate}
+          />
+        )}
+        {selectedChair && (
+          <div className="text-center mt-3">
+            <Alert variant="info">Selected Chair: {selectedChair}</Alert>
+          </div>
         )}
         <div className="d-flex justify-content-center mt-4">
           <Button variant="success" type="submit">

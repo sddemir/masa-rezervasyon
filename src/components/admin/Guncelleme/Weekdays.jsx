@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
-import { listReservations } from "../../../services/userService"; // Import listReservations
+import { listReservations } from "../../../services/userService";
 import Day from "../../shared/Day";
 import axios from "axios";
 import FormComponent from "../../shared/Form";
 import "./Weekdays.css";
+
+// Define utility functions at the top
+const getMonday = (date) => {
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+  return new Date(date.setDate(diff));
+};
+
+const getNextMonday = (date) => {
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? 1 : 8 - day); // Next Monday
+  return new Date(date.setDate(diff));
+};
 
 const Weekdays = () => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -16,8 +29,19 @@ const Weekdays = () => {
   const [silMode, setSilMode] = useState(false);
   const [silModeOptions, setSilModeOptions] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [calisanlar, setCalisanlar] = useState([]);
   const [odalar, setOdalar] = useState([]);
+
+  useEffect(() => {
+    fetchCalisanlar();
+    fetchOdalar();
+  }, []);
+
+  useEffect(() => {
+    fetchNumbers();
+    checkNextWeekVisibility(currentMonday);
+  }, [currentMonday]);
 
   const fetchCalisanlar = async () => {
     try {
@@ -29,7 +53,7 @@ const Weekdays = () => {
       setCalisanlar(formattedData);
     } catch (error) {
       console.error("Error fetching calisanlar:", error);
-      setCalisanlar([]); // Set empty array in case of error
+      setCalisanlar([]);
     }
   };
 
@@ -45,64 +69,24 @@ const Weekdays = () => {
       setOdalar(mockOdalar);
     } catch (error) {
       console.error("Error fetching odalar:", error);
-      setOdalar([]); // Set empty array in case of error
+      setOdalar([]);
     }
-  };
-
-  useEffect(() => {
-    const today = new Date();
-    if (today.getDay() === 6 || today.getDay() === 0) {
-      setCurrentMonday(getNextMonday(today));
-    } else {
-      setCurrentMonday(getMonday(today));
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCalisanlar();
-    fetchOdalar();
-  }, []);
-
-  useEffect(() => {
-    fetchNumbers();
-    checkNextWeekVisibility(currentMonday);
-  }, [currentMonday]);
-
-  function getMonday(date) {
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(date.setDate(diff));
-  }
-
-  function getNextMonday(date) {
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? 1 : 8 - day);
-    return new Date(date.setDate(diff));
-  }
-
-  const getCurrentWeekDates = (monday) => {
-    return days.map((_, index) => {
-      const date = new Date(monday);
-      date.setDate(monday.getDate() + index);
-      return date;
-    });
   };
 
   const fetchNumbers = async () => {
     try {
       const startDate = new Date(currentMonday);
       const endDate = new Date(currentMonday);
-      endDate.setDate(endDate.getDate() + 6); // Set end date to 6 days after the start date
+      endDate.setDate(endDate.getDate() + 6);
 
       const response = await listReservations({
-        startDate: startDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
-        endDate: endDate.toISOString().split("T")[0], // Format as YYYY-MM-DD
+        startDate: startDate.toISOString().split("T")[0],
+        endDate: endDate.toISOString().split("T")[0],
       });
 
       const reservations = response.data;
       const reservationCounts = {};
 
-      // Initialize reservation counts for each day of the week
       days.forEach((day) => (reservationCounts[day] = 0));
 
       reservations.forEach((reservation) => {
@@ -133,48 +117,33 @@ const Weekdays = () => {
     checkNextWeekVisibility(nextMonday);
   };
 
-  const weekDates = getCurrentWeekDates(currentMonday);
-
-  const handleButtonClick1 = (day) => {
-    console.log(`Button 1 clicked for ${day}`);
-    setFormVisible(false); // Hide FormComponent if Güncelle is clicked
-    setSilMode(false); // Hide Sil mode options if Güncelle is clicked
+  const getCurrentWeekDates = (monday) => {
+    return days.map((_, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      return date;
+    });
   };
 
-  const handleButtonClick2 = (day) => {
-    console.log(`Button 2 clicked for ${day}`);
-    setFormVisible(false); // Hide FormComponent if Sil is clicked
-    setSilMode(false); // Hide Sil mode options if Sil is clicked
-  };
-
-  const handleGuncelleClick = (day) => {
-    console.log(`Güncelle clicked for ${day}`);
+  const handleGuncelleClick = (dayName, date) => {
+    setSelectedDate(date);
     setFormVisible(true);
-    setSilMode(false); // Ensure Sil mode is hidden if Güncelle is clicked
-    setSilModeOptions(null); // Reset Sil mode options when switching to Güncelle
+    setSilMode(false);
+    setSilModeOptions(null);
   };
 
   const handleSilClick = (day) => {
-    console.log(`Sil clicked for ${day}`);
     setSilMode(true);
     setSelectedDay(day);
-    setFormVisible(true); // Show FormComponent if Sil is clicked
+    setFormVisible(true);
   };
 
-  const handleSelectChange = (event, type) => {
-    const value = event.target.value;
-    console.log(`${type} selected: ${value}`);
-    // Fetch and display the reservation data based on the selection
-  };
+  const checkNextWeekVisibility = (currentMondayDate) => {
+    const today = new Date();
+    const nextFriday = new Date(currentMondayDate);
+    nextFriday.setDate(currentMondayDate.getDate() + 4);
 
-  const handleFormSubmit = (data) => {
-    console.log("Form submitted with data:", data);
-    // Add your submission logic here
-  };
-
-  const handleDeleteReservation = (id) => {
-    console.log(`Delete reservation with id: ${id}`);
-    // Add your deletion logic here
+    setNextWeekVisible(today >= nextFriday);
   };
 
   const formatDateRange = (start, end) => {
@@ -185,20 +154,10 @@ const Weekdays = () => {
     )} - ${end.toLocaleDateString(undefined, options)}`;
   };
 
-  const checkNextWeekVisibility = (currentMondayDate) => {
-    const today = new Date();
-    const nextFriday = new Date(currentMondayDate);
-    nextFriday.setDate(currentMondayDate.getDate() + 4); // Assuming Friday is 4 days after Monday
-
-    setNextWeekVisible(today >= nextFriday);
-  };
-
+  const weekDates = getCurrentWeekDates(currentMonday);
   const isCurrentWeek =
     currentMonday.getTime() === getMonday(new Date()).getTime();
   const isPastWeek = currentMonday < getMonday(new Date());
-
-  const today = new Date();
-  const isSaturdayOrLater = today.getDay() === 6 || today.getDay() === 0;
 
   return (
     <Container>
@@ -224,9 +183,9 @@ const Weekdays = () => {
               <Day
                 dayName={day}
                 date={weekDates[index]}
-                onButtonClick1={() => handleButtonClick1(day)}
-                onButtonClick2={() => handleButtonClick2(day)}
-                onGuncelleClick={() => handleGuncelleClick(day)}
+                onGuncelleClick={() =>
+                  handleGuncelleClick(day, weekDates[index])
+                }
                 onSilClick={() => handleSilClick(day)}
                 isCurrentDay={day === days[new Date().getDay() - 1]}
                 number={numbers[day] || 0}
@@ -243,14 +202,13 @@ const Weekdays = () => {
       </Container>
       {formVisible && (
         <FormComponent
-          onSubmit={handleFormSubmit}
+          onSubmit={() => {}}
           silMode={silMode}
           includeCalisanSelect={true}
           calisanlar={calisanlar}
           odalar={odalar}
           selectedDay={selectedDay}
-          onSelectChange={handleSelectChange}
-          onDelete={handleDeleteReservation}
+          selectedDate={selectedDate}
         />
       )}
     </Container>

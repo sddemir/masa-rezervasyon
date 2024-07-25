@@ -5,6 +5,7 @@ import {
   createReservation,
   deleteReservation,
   listReservations,
+  listDesksWithStatus,
 } from "../../services/userService";
 import Scene from "../shared/Kroki/Scene";
 
@@ -13,6 +14,7 @@ const FormComponent = ({
   includeCalisanSelect,
   silMode,
   selectedDay,
+  selectedDate,
 }) => {
   const [calisanlar, setCalisanlar] = useState([]);
   const [selectedCalisan, setSelectedCalisan] = useState("");
@@ -23,10 +25,14 @@ const FormComponent = ({
   const [showScene, setShowScene] = useState(false);
   const [reservations, setReservations] = useState([]);
   const [showCalisanSelect, setShowCalisanSelect] = useState(false);
+  const [desksWithStatus, setDesksWithStatus] = useState([]);
 
   useEffect(() => {
     fetchCalisanlar();
-  }, []);
+    if (selectedDate) {
+      fetchDesks();
+    }
+  }, [selectedDate]);
 
   const fetchCalisanlar = async () => {
     try {
@@ -38,6 +44,19 @@ const FormComponent = ({
       setCalisanlar(formattedData);
     } catch (error) {
       setError("Error fetching çalışanlar.");
+    }
+  };
+
+  const fetchDesks = async () => {
+    try {
+      if (!selectedDate) {
+        throw new Error("Selected date is undefined");
+      }
+      const desksWithStatus = await listDesksWithStatus(selectedDate);
+      setDesksWithStatus(desksWithStatus);
+    } catch (error) {
+      console.error("Error fetching desks:", error);
+      setError("Error fetching desks.");
     }
   };
 
@@ -77,8 +96,34 @@ const FormComponent = ({
     const reservationData = {
       userId: selectedCalisan,
       deskId: selectedChair,
-      reservationDate: new Date().toISOString().split("T")[0],
+      reservationDate: selectedDate.toISOString().split("T")[0],
     };
+
+    // Check if the user already has a reservation for the selected date
+    const userReservation = reservations.find(
+      (reservation) =>
+        reservation.userId === parseInt(selectedCalisan) &&
+        reservation.reservationDate === reservationData.reservationDate
+    );
+
+    if (userReservation) {
+      setError("You already have a reservation for this date.");
+      setSuccess(false);
+      return;
+    }
+
+    // Check if the chair is already reserved for the selected date
+    const existingReservation = reservations.find(
+      (reservation) =>
+        reservation.deskId === selectedChair &&
+        reservation.reservationDate === reservationData.reservationDate
+    );
+
+    if (existingReservation) {
+      setError("This chair is already reserved for the selected date.");
+      setSuccess(false);
+      return;
+    }
 
     try {
       await createReservation(reservationData);
@@ -220,19 +265,20 @@ const FormComponent = ({
             <Scene
               selectedOda={selectedOda}
               onChairSelect={handleChairSelect}
+              selectedDate={selectedDate}
             />
           )}
 
           {selectedChair && (
-            <Form.Group controlId="selectedChair">
-              <Form.Label>Seçilen Masa</Form.Label>
-              <Form.Control type="text" value={selectedChair} readOnly />
-            </Form.Group>
+            <div className="text-center mt-3">
+              <Alert variant="info">Selected Chair: {selectedChair}</Alert>
+            </div>
           )}
-
-          <Button variant="primary" type="submit">
-            Masayı Seç
-          </Button>
+          <div className="d-flex justify-content-center mt-4">
+            <Button variant="success" type="submit">
+              Reserve
+            </Button>
+          </div>
         </Form>
       )}
     </Container>

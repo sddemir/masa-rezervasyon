@@ -28,7 +28,7 @@ const Day = ({
           {dayName} - {formattedDate}
         </Card.Title>
         <Card.Text>
-          <strong>Number: {number}</strong>
+          <strong>Rezervasyon Sayısı: {number}</strong>
         </Card.Text>
         <Button
           variant="primary"

@@ -1,93 +1,86 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container, Row, Col, Button, Form, Alert } from "react-bootstrap";
+// import { updatePassword } from "../../../services/userService";
 import "./Login.css";
+import "./Password.css";
 
-const Password = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Password = ({ userId }) => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const handlePasswordReset = (e) => {
-    e.preventDefault();
-    if (email && password && password === confirmPassword) {
-      setEmailSent(true);
-      setSuccess(true);
-      setError("");
-      console.log("Şifre sıfırlandı - Email:", email, "Yeni Şifre:", password);
-    } else {
-      setEmailSent(false);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      setError("Yeni şifreler eşleşmiyor.");
       setSuccess(false);
-      setError("Lütfen geçerli bir e-posta adresi ve eşleşen şifreler girin.");
+      return;
+    }
+
+    try {
+      await updatePassword(userId, currentPassword, newPassword);
+      setSuccess(true);
+      setError(null);
+    } catch (error) {
+      console.error("Şifre değiştirme hatası:", error);
+      setError("Şifre değiştirirken bir hata oluştu.");
+      setSuccess(false);
     }
   };
 
   return (
-    <Container className="mt-5">
-      <Row>
-        <Col md={{ span: 6, offset: 3 }}>
-          <div className="form-container">
-            <h2 style={{ color: "red" }}>Şifremi Unuttum</h2>
-            {success ? (
-              <Alert variant="success" className="mt-3">
-                Şifre başarıyla sıfırlandı. Yeni şifrenizle giriş
-                yapabilirsiniz.
-              </Alert>
-            ) : (
-              <Form onSubmit={handlePasswordReset}>
-                <Form.Group controlId="formBasicEmail">
-                  <Form.Label>Email adresi</Form.Label>
-                  <Form.Control
-                    type="email"
-                    placeholder="Email girin"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </Form.Group>
+    <Container className="password-container">
+      <h3>Şifreyi Yenile</h3>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && (
+        <Alert variant="success">Şifre başarıyla değiştirildi!</Alert>
+      )}
+      <Form onSubmit={handleSubmit} className="password-form">
+        <Form.Group controlId="currentPassword">
+          <Form.Label>Mevcut Şifre</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Mevcut şifrenizi girin"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
 
-                <Form.Group controlId="formBasicPassword" className="mt-3">
-                  <Form.Label>Yeni Şifre</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Yeni şifrenizi girin"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Form.Group>
+        <Form.Group controlId="newPassword" className="mt-3">
+          <Form.Label>Yeni Şifre</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Yeni şifrenizi girin"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
 
-                <Form.Group controlId="formConfirmPassword" className="mt-3">
-                  <Form.Label>Şifreyi Onayla</Form.Label>
-                  <Form.Control
-                    type="password"
-                    placeholder="Yeni şifrenizi tekrar girin"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </Form.Group>
+        <Form.Group controlId="confirmPassword" className="mt-3">
+          <Form.Label>Yeni Şifreyi Onayla</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Yeni şifrenizi tekrar girin"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
 
-                {error && (
-                  <Alert variant="danger" className="mt-2">
-                    {error}
-                  </Alert>
-                )}
-
-                <Button
-                  variant="gradient"
-                  type="submit"
-                  className="w-100 mt-3 button-gradient"
-                >
-                  Şifreyi Sıfırla
-                </Button>
-              </Form>
-            )}
-          </div>
-        </Col>
-      </Row>
+        <div className="text-center mt-4">
+          <Button variant="primary" type="submit">
+            Şifreyi Değiştir
+          </Button>
+        </div>
+      </Form>
     </Container>
   );
 };
 
-export default Password; // Ensure this line is present
+export default Password;

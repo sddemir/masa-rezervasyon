@@ -53,7 +53,7 @@ const FormComponent = ({ onSubmit, userId, selectedDate }) => {
     );
 
     if (userReservation) {
-      setError("You already have a reservation for this date.");
+      setError("Bu tarih için bir rezervasyon zaten var.");
       setSuccess(false);
       return;
     }
@@ -95,14 +95,14 @@ const FormComponent = ({ onSubmit, userId, selectedDate }) => {
 
   return (
     <Container className="form-container">
-      <h3>Form Component</h3>
+      {/* <h3>Form Component</h3> */}
       {error && <Alert variant="danger">{error}</Alert>}
       {success && (
-        <Alert variant="success">Reservation created successfully!</Alert>
+        <Alert variant="success">Reservasyon başarıyla oluşturuldu!</Alert>
       )}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="odaType">
-          <Form.Label>Select Oda</Form.Label>
+          <Form.Label></Form.Label>
           <div className="d-flex justify-content-center mb-3">
             <Button
               variant={
@@ -130,12 +130,12 @@ const FormComponent = ({ onSubmit, userId, selectedDate }) => {
         )}
         {selectedChair && (
           <div className="text-center mt-3">
-            <Alert variant="info">Selected Chair: {selectedChair}</Alert>
+            <Alert variant="info">Seçilen Masa: {selectedChair}</Alert>
           </div>
         )}
         <div className="d-flex justify-content-center mt-4">
           <Button variant="success" type="submit">
-            Reserve
+            Reserve Et
           </Button>
         </div>
       </Form>

@@ -1,0 +1,14 @@
+/* Slider ayarları */
+.slider {
+  position: relative;
+  width: 100%;
+  height: 600px; /* Slider yüksekliği */
+  overflow: hidden;
+  margin-bottom: 50px; /* Alt boşluk */
+}
+
+.slider-image {
+  width: 100%;
+  height: 100%; /* Resim yüksekliği */
+  object-fit: cover; /* Resim orantısını korur */
+}

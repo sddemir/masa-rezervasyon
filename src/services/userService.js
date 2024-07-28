@@ -43,6 +43,34 @@ export const listReservationsByUser = (userId) =>
 //   console.log("Making API request to:", url); // Add this line for debugging
 //   return axios.get(url);
 // };
+// export const listDesksWithStatus = async (selectedDate) => {
+//   try {
+//     const desksResponse = await listDesks();
+//     const reservationsResponse = await listReservations();
+
+//     const desks = desksResponse.data;
+//     const reservations = reservationsResponse.data;
+
+//     // Convert selectedDate to string in 'YYYY-MM-DD' format
+//     const reservationDate = selectedDate.toISOString().split("T")[0];
+
+//     // Map reservations by deskId and reservationDate
+//     const reservedDesks = reservations.reduce((acc, reservation) => {
+//       if (reservation.reservationDate === reservationDate) {
+//         acc[reservation.deskId] = true;
+//       }
+//       return acc;
+//     }, {});
+
+//     return desks.map((desk) => ({
+//       ...desk,
+//       isReserved: reservedDesks[desk.id] || false,
+//     }));
+//   } catch (error) {
+//     console.error("Error fetching desk statuses:", error);
+//     throw error;
+//   }
+// };
 export const listDesksWithStatus = async (selectedDate) => {
   try {
     const desksResponse = await listDesks();
@@ -54,6 +82,9 @@ export const listDesksWithStatus = async (selectedDate) => {
     // Convert selectedDate to string in 'YYYY-MM-DD' format
     const reservationDate = selectedDate.toISOString().split("T")[0];
 
+    console.log("Formatted Reservation Date:", reservationDate);
+    console.log("Reservations:", reservations);
+
     // Map reservations by deskId and reservationDate
     const reservedDesks = reservations.reduce((acc, reservation) => {
       if (reservation.reservationDate === reservationDate) {
@@ -62,10 +93,13 @@ export const listDesksWithStatus = async (selectedDate) => {
       return acc;
     }, {});
 
-    return desks.map((desk) => ({
+    const desksWithStatus = desks.map((desk) => ({
       ...desk,
       isReserved: reservedDesks[desk.id] || false,
     }));
+
+    console.log("Fetched desks with status:", desksWithStatus);
+    return desksWithStatus;
   } catch (error) {
     console.error("Error fetching desk statuses:", error);
     throw error;

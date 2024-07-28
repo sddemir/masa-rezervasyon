@@ -31,6 +31,7 @@ const FormComponent = ({
     fetchCalisanlar();
     if (selectedDate) {
       fetchDesks();
+      fetchReservations();
     }
   }, [selectedDate]);
 
@@ -52,11 +53,22 @@ const FormComponent = ({
       if (!selectedDate) {
         throw new Error("Selected date is undefined");
       }
+      console.log("Fetching desks for selected date:", selectedDate);
       const desksWithStatus = await listDesksWithStatus(selectedDate);
       setDesksWithStatus(desksWithStatus);
     } catch (error) {
       console.error("Error fetching desks:", error);
       setError("Error fetching desks.");
+    }
+  };
+
+  const fetchReservations = async () => {
+    try {
+      const response = await listReservations();
+      setReservations(response.data);
+      console.log("Fetched reservations:", response.data);
+    } catch (error) {
+      setError("Error fetching reservations.");
     }
   };
 
@@ -93,21 +105,22 @@ const FormComponent = ({
       return;
     }
 
+    const reservationDate = selectedDate.toISOString().split("T")[0];
     const reservationData = {
       userId: selectedCalisan,
       deskId: selectedChair,
-      reservationDate: selectedDate.toISOString().split("T")[0],
+      reservationDate: reservationDate,
     };
 
-    // Check if the user already has a reservation for the selected date
-    const userReservation = reservations.find(
+    // Check if the user already has any reservation for the selected date
+    const userReservations = reservations.filter(
       (reservation) =>
         reservation.userId === parseInt(selectedCalisan) &&
-        reservation.reservationDate === reservationData.reservationDate
+        reservation.reservationDate === reservationDate
     );
 
-    if (userReservation) {
-      setError("You already have a reservation for this date.");
+    if (userReservations.length > 0) {
+      setError("Bu tarih için bir rezervasyon zaten var.");
       setSuccess(false);
       return;
     }
@@ -116,7 +129,7 @@ const FormComponent = ({
     const existingReservation = reservations.find(
       (reservation) =>
         reservation.deskId === selectedChair &&
-        reservation.reservationDate === reservationData.reservationDate
+        reservation.reservationDate === reservationDate
     );
 
     if (existingReservation) {
@@ -130,6 +143,9 @@ const FormComponent = ({
       setSuccess(true);
       setError(null);
       onSubmit(reservationData);
+      // Update the reservations state after successfully creating a reservation
+      setReservations((prev) => [...prev, reservationData]);
+      console.log("New reservation added:", reservationData);
     } catch (error) {
       setError("Failed to make reservation.");
       setSuccess(false);
@@ -171,11 +187,9 @@ const FormComponent = ({
 
   return (
     <Container className="form-container">
-      <h3>Form Component</h3>
+      {/* <h3>Form Component</h3> */}
       {error && <Alert variant="danger">{error}</Alert>}
-      {success && (
-        <Alert variant="success">Operation completed successfully!</Alert>
-      )}
+      {success && <Alert variant="success">İşlem başarıyla yapıldı!</Alert>}
       {silMode ? (
         <>
           <Button variant="primary" onClick={handleShowCalisanSelect}>
@@ -190,13 +204,13 @@ const FormComponent = ({
           {showCalisanSelect && (
             <>
               <Form.Group controlId="calisanSelect">
-                <Form.Label>Çalışanlar</Form.Label>
+                <Form.Label></Form.Label>
                 <Form.Control
                   as="select"
                   value={selectedCalisan}
                   onChange={handleCalisanChange}
                 >
-                  <option value="">Select a çalışan</option>
+                  <option value="">Çalışan Seç</option>
                   {calisanlar.map((calisan) => (
                     <option key={calisan.id} value={calisan.id}>
                       {calisan.name}
@@ -229,13 +243,13 @@ const FormComponent = ({
         <Form onSubmit={handleSubmit}>
           {includeCalisanSelect && (
             <Form.Group controlId="calisanSelect">
-              <Form.Label>Çalışanlar</Form.Label>
+              <Form.Label></Form.Label>
               <Form.Control
                 as="select"
                 value={selectedCalisan}
                 onChange={handleCalisanChange}
               >
-                <option value="">Select a çalışan</option>
+                <option value="">Çalışan Seç</option>
                 {calisanlar.map((calisan) => (
                   <option key={calisan.id} value={calisan.id}>
                     {calisan.name}
@@ -246,7 +260,7 @@ const FormComponent = ({
           )}
 
           <Form.Group controlId="odaSelect">
-            <Form.Label>Odalar</Form.Label>
+            <Form.Label></Form.Label>
             <Button
               variant="primary"
               onClick={() => handleButtonClick("Mobilite")}
@@ -271,12 +285,12 @@ const FormComponent = ({
 
           {selectedChair && (
             <div className="text-center mt-3">
-              <Alert variant="info">Selected Chair: {selectedChair}</Alert>
+              <Alert variant="info">Seçilen Masa: {selectedChair}</Alert>
             </div>
           )}
           <div className="d-flex justify-content-center mt-4">
             <Button variant="success" type="submit">
-              Reserve
+              Reserve Et
             </Button>
           </div>
         </Form>

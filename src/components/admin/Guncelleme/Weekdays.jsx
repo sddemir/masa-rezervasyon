@@ -20,18 +20,18 @@ const getNextMonday = (date) => {
 };
 
 const Weekdays = () => {
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
 
   const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
   const [numbers, setNumbers] = useState({});
   const [nextWeekVisible, setNextWeekVisible] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [silMode, setSilMode] = useState(false);
-  const [silModeOptions, setSilModeOptions] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [calisanlar, setCalisanlar] = useState([]);
   const [odalar, setOdalar] = useState([]);
+  const [firstWeekMonday, setFirstWeekMonday] = useState(getMonday(new Date()));
 
   useEffect(() => {
     fetchCalisanlar();
@@ -41,6 +41,10 @@ const Weekdays = () => {
   useEffect(() => {
     fetchNumbers();
     checkNextWeekVisibility(currentMonday);
+    // Update the state of firstWeekMonday when the currentMonday changes
+    const today = new Date();
+    const firstMonday = getMonday(today);
+    setFirstWeekMonday(firstMonday);
   }, [currentMonday]);
 
   const fetchCalisanlar = async () => {
@@ -59,9 +63,7 @@ const Weekdays = () => {
 
   const fetchOdalar = async () => {
     try {
-      // Simulate a delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Mock data
       const mockOdalar = [
         { id: 1, name: "Meeting Room 1" },
         { id: 2, name: "Office 101" },
@@ -77,23 +79,24 @@ const Weekdays = () => {
     try {
       const startDate = new Date(currentMonday);
       const endDate = new Date(currentMonday);
-      endDate.setDate(endDate.getDate() + 6);
+      endDate.setDate(endDate.getDate() + 6); // End of the week (Sunday)
 
-      const response = await listReservations({
-        startDate: startDate.toISOString().split("T")[0],
-        endDate: endDate.toISOString().split("T")[0],
-      });
-
+      const response = await listReservations();
       const reservations = response.data;
-      const reservationCounts = {};
 
-      days.forEach((day) => (reservationCounts[day] = 0));
+      const reservationCounts = {};
+      const date = new Date(startDate);
+
+      while (date <= endDate) {
+        const dateString = date.toISOString().split("T")[0];
+        reservationCounts[dateString] = 0;
+        date.setDate(date.getDate() + 1);
+      }
 
       reservations.forEach((reservation) => {
-        const reservationDate = new Date(reservation.reservationDate);
-        const reservationDay = days[reservationDate.getDay() - 1];
-        if (reservationCounts[reservationDay] !== undefined) {
-          reservationCounts[reservationDay]++;
+        const reservationDate = reservation.reservationDate; // "YYYY-MM-DD"
+        if (reservationCounts.hasOwnProperty(reservationDate)) {
+          reservationCounts[reservationDate]++;
         }
       });
 
@@ -107,14 +110,12 @@ const Weekdays = () => {
     const prevMonday = new Date(currentMonday);
     prevMonday.setDate(prevMonday.getDate() - 7);
     setCurrentMonday(prevMonday);
-    checkNextWeekVisibility(prevMonday);
   };
 
   const handleNextWeek = () => {
     const nextMonday = new Date(currentMonday);
     nextMonday.setDate(nextMonday.getDate() + 7);
     setCurrentMonday(nextMonday);
-    checkNextWeekVisibility(nextMonday);
   };
 
   const getCurrentWeekDates = (monday) => {
@@ -129,7 +130,6 @@ const Weekdays = () => {
     setSelectedDate(date);
     setFormVisible(true);
     setSilMode(false);
-    setSilModeOptions(null);
   };
 
   const handleSilClick = (day) => {
@@ -154,20 +154,29 @@ const Weekdays = () => {
     )} - ${end.toLocaleDateString(undefined, options)}`;
   };
 
+  const isPastWeek = (monday) => {
+    const today = new Date();
+    const endOfCurrentWeek = new Date(getMonday(today));
+    endOfCurrentWeek.setDate(endOfCurrentWeek.getDate() + 6); // End of the week (Sunday)
+
+    return monday < endOfCurrentWeek;
+  };
+
   const weekDates = getCurrentWeekDates(currentMonday);
-  const isCurrentWeek =
-    currentMonday.getTime() === getMonday(new Date()).getTime();
-  const isPastWeek = currentMonday < getMonday(new Date());
+  const isPast = !isPastWeek(currentMonday);
+  const isFirstWeek = currentMonday.getTime() === firstWeekMonday.getTime();
 
   return (
     <Container>
       <Container className="weekdays-container">
         <div className="week-navigation text-center mb-4">
-          {!isCurrentWeek && (
-            <Button variant="outline-primary" onClick={handlePrevWeek}>
-              &lt;
-            </Button>
-          )}
+          <Button
+            variant="outline-primary"
+            onClick={handlePrevWeek}
+            disabled={isFirstWeek} // Disable when on the first week
+          >
+            &lt;
+          </Button>
           <span className="mx-3">
             {formatDateRange(weekDates[0], weekDates[4])}
           </span>
@@ -188,17 +197,14 @@ const Weekdays = () => {
                 }
                 onSilClick={() => handleSilClick(day)}
                 isCurrentDay={day === days[new Date().getDay() - 1]}
-                number={numbers[day] || 0}
-                isPastWeek={isPastWeek}
+                number={
+                  numbers[weekDates[index].toISOString().split("T")[0]] || 0
+                }
+                disableButtons={!isPast}
               />
             </Col>
           ))}
         </Row>
-        <div className="text-center">
-          {isPastWeek && !formVisible && (
-            <p className="mt-3">Güncelleme ve Silme işlemleri mevcut değil.</p>
-          )}
-        </div>
       </Container>
       {formVisible && (
         <FormComponent

@@ -1,11 +1,67 @@
-.home {
+/* .home {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+} */
+
+.home-container {
+  position: relative;
+  overflow: hidden; /* Fotoğrafın taşmasını engeller */
 }
 
-.office-layout {
-  width: 100%;
-  height: auto;
+/* Hero resim stili */
+.hero-image {
+  background-image: url("https://www.simplilearn.com/ice9/free_resources_article_thumb/What_is_human_computer_interaction.jpg"); /* Fotoğrafın URL'si */
+  background-size: cover;
+  background-position: center;
+  height: 100vh; /* Fotoğrafın yüksekliğini ayarlar */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hero metni stili */
+.hero-text {
+  position: absolute;
+  top: 60%; /* Metni daha aşağıya taşır */
+  left: 50%;
+  height: 350px;
+  transform: translate(-50%, -50%); /* Metni yatayda ve dikeyde ortalar */
+  color: white;
+  text-align: center;
+  font-size: 1.5rem; /* Metin boyutunu ayarlar */
+  background: rgba(0, 0, 0, 0.5); /* Metin arka planını şeffaf siyah yapar */
+  padding: 20px;
+  border-radius: 25px; /* Köşeleri oval yapar */
+  border: 2px solid white; /* Beyaz border ekler */
+}
+
+/* Paragraf metni stili */
+.hero-text p {
+  font-size: 0.9rem; /* Paragraf metninin boyutunu küçültür */
+}
+
+/* Rezervasyon Oluştur butonu stili */
+.hero-button {
+  margin-top: 20px; /* Buton ile metin arasına boşluk ekler */
+  padding: 10px 20px; /* Butonun iç boşluklarını ayarlar */
+  background-color: #007bff; /* Butonun arka plan rengini ayarlar */
+  color: white; /* Buton metin rengini beyaz yapar */
+  border: none; /* Buton kenarlığını kaldırır */
+  border-radius: 25px; /* Buton köşelerini oval yapar */
+  cursor: pointer; /* Buton üzerine gelindiğinde imleci değiştirir */
+}
+
+.hero-button:hover {
+  background-color: #0056b3; /* Buton üzerine gelindiğinde arka plan rengini değiştirir */
+}
+
+.slider {
+  margin-bottom: 0; /* Slider altındaki boşluğu kaldırır */
+}
+
+.plan-container {
+  margin-top: 0; /* Plan üstündeki boşluğu kaldırır */
 }

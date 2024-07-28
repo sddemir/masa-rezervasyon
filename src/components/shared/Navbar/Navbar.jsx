@@ -30,13 +30,9 @@ const Navbar = ({ userRole, onLogout }) => {
         Yaşar Bilgi MRS
       </BootstrapNavbar.Brand>
       <Form className="form-inline mr-sm-2 navbar_form align_center">
-        <FormControl
-          type="text"
-          placeholder="Search"
-          className="navbar_search"
-        />
+        <FormControl type="text" placeholder="Ara" className="navbar_search" />
         <Button variant="outline-success" className="search_button">
-          Search
+          Ara
         </Button>
       </Form>
       <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
@@ -46,7 +42,7 @@ const Navbar = ({ userRole, onLogout }) => {
           onSelect={handleSelect}
         >
           <RouterLink to="/home" className="nav-link" onClick={handleSelect}>
-            Home
+            Ana Sayfa
           </RouterLink>
           {userRole === "admin" && (
             <>

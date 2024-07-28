@@ -3,59 +3,26 @@ import { Container, Row, Col, Button, Alert } from "react-bootstrap";
 import Day from "../../shared/Day";
 import FormComponent from "./FormComponent";
 import "./WorkerWeekdays.css";
-import { listReservations } from "../../../services/userService";
+import {
+  listReservations,
+  deleteReservation,
+} from "../../../services/userService";
 
 const WorkerWeekdays = ({ userId }) => {
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
   const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
   const [numbers, setNumbers] = useState({});
   const [nextWeekVisible, setNextWeekVisible] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null); // Add state for selected date
+  const [selectedDate, setSelectedDate] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // Fetch all reservations
-  const fetchReservations = async () => {
-    try {
-      const response = await listReservations();
-      console.log("Fetching reservations for userId:", userId);
-      console.log("Reservations response:", response.data); // Add logging
-
-      if (response.data && Array.isArray(response.data)) {
-        setReservations(response.data);
-        // Filter reservations for the current user
-        const userReservations = response.data.filter(
-          (reservation) => reservation.userId === userId
-        );
-        setFilteredReservations(userReservations);
-
-        // Calculate reservation counts
-        const reservationCounts = {};
-        response.data.forEach((reservation) => {
-          const reservationDate = new Date(reservation.reservationDate);
-          const dayName = days[reservationDate.getDay() - 1]; // Adjust based on your day names
-          if (dayName) {
-            reservationCounts[dayName] = (reservationCounts[dayName] || 0) + 1;
-          }
-        });
-        setNumbers(reservationCounts);
-      } else {
-        setReservations([]);
-        setFilteredReservations([]);
-        setNumbers({});
-      }
-    } catch (error) {
-      console.error("Error fetching reservations:", error);
-      setError("Error fetching reservations");
-    }
-  };
-
   useEffect(() => {
     fetchReservations();
-  }, [userId]);
+  }, [userId, currentMonday]);
 
   useEffect(() => {
     checkNextWeekVisibility(currentMonday);
@@ -85,31 +52,33 @@ const WorkerWeekdays = ({ userId }) => {
     const prevMonday = new Date(currentMonday);
     prevMonday.setDate(prevMonday.getDate() - 7);
     setCurrentMonday(prevMonday);
-    checkNextWeekVisibility(prevMonday);
   };
 
   const handleNextWeek = () => {
     const nextMonday = new Date(currentMonday);
     nextMonday.setDate(nextMonday.getDate() + 7);
     setCurrentMonday(nextMonday);
-    checkNextWeekVisibility(nextMonday);
   };
 
   const weekDates = getCurrentWeekDates(currentMonday);
 
   const handleGuncelleClick = (day, date) => {
-    // Updated to accept date
-    console.log(`Güncelle clicked for ${day}`);
-    setSelectedDate(date); // Set the selected date
+    setSelectedDate(date);
     setFormVisible(true);
   };
 
-  const handleSilClick = async (reservationId) => {
+  const handleSilClick = async (reservationId, date) => {
+    const today = new Date();
+    if (date < today) {
+      setError("You cannot delete reservations for past dates.");
+      return;
+    }
+
     try {
       await deleteReservation(reservationId);
       setSuccess(true);
       setError(null);
-      fetchReservations(); // Refresh reservations list
+      fetchReservations();
     } catch (error) {
       console.error("Error deleting reservation:", error);
       setError("Failed to delete reservation");
@@ -135,10 +104,78 @@ const WorkerWeekdays = ({ userId }) => {
 
   const isCurrentWeek =
     currentMonday.getTime() === getMonday(new Date()).getTime();
-  const isPastWeek = currentMonday < getMonday(new Date());
 
-  const today = new Date();
-  const isSaturdayOrLater = today.getDay() === 6 || today.getDay() === 0;
+  const isDateInPast = (date) => {
+    const today = new Date();
+    return today > date;
+  };
+
+  const fetchReservations = async () => {
+    try {
+      const response = await listReservations();
+      console.log("Fetching reservations for userId:", userId);
+      console.log("Reservations response:", response.data);
+
+      if (response.data && Array.isArray(response.data)) {
+        const today = new Date();
+        const isSaturday = today.getDay() === 6;
+
+        setReservations(response.data);
+        const userReservations = response.data.filter(
+          (reservation) => reservation.userId === userId
+        );
+
+        const reservationCounts = {};
+        response.data.forEach((reservation) => {
+          const reservationDate = reservation.reservationDate;
+          if (reservationCounts.hasOwnProperty(reservationDate)) {
+            reservationCounts[reservationDate]++;
+          } else {
+            reservationCounts[reservationDate] = 1;
+          }
+        });
+        setNumbers(reservationCounts);
+
+        // Determine current and next week boundaries
+        const startOfCurrentWeek = getMonday(new Date());
+        const endOfCurrentWeek = new Date(startOfCurrentWeek);
+        endOfCurrentWeek.setDate(startOfCurrentWeek.getDate() + 4); // Friday
+
+        const startOfNextWeek = new Date(endOfCurrentWeek);
+        startOfNextWeek.setDate(endOfCurrentWeek.getDate() + 3); // Monday of next week
+
+        // Adjust reservation list based on the current date and the day of the week
+        if (isSaturday) {
+          // If it's Saturday, don't show reservations for the current week
+          setFilteredReservations(
+            userReservations.filter((reservation) => {
+              const reservationDate = new Date(reservation.reservationDate);
+              return reservationDate >= startOfNextWeek;
+            })
+          );
+        } else {
+          // Show reservations for current and next week
+          setFilteredReservations(
+            userReservations.filter((reservation) => {
+              const reservationDate = new Date(reservation.reservationDate);
+              return (
+                (reservationDate >= startOfCurrentWeek &&
+                  reservationDate <= endOfCurrentWeek) ||
+                reservationDate >= startOfNextWeek
+              );
+            })
+          );
+        }
+      } else {
+        setReservations([]);
+        setFilteredReservations([]);
+        setNumbers({});
+      }
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+      setError("Error fetching reservations");
+    }
+  };
 
   return (
     <Container>
@@ -166,10 +203,15 @@ const WorkerWeekdays = ({ userId }) => {
                 date={weekDates[index]}
                 onGuncelleClick={() =>
                   handleGuncelleClick(day, weekDates[index])
-                } // Pass date here
+                }
+                onSilClick={(reservationId) =>
+                  handleSilClick(reservationId, weekDates[index])
+                }
                 isCurrentDay={day === days[new Date().getDay() - 1]}
-                number={numbers[day] || 0} // This shows the reservation count
-                disableButtons={isPastWeek && isSaturdayOrLater}
+                number={
+                  numbers[weekDates[index].toISOString().split("T")[0]] || 0
+                }
+                disableButtons={isDateInPast(weekDates[index])}
               />
             </Col>
           ))}
@@ -178,8 +220,8 @@ const WorkerWeekdays = ({ userId }) => {
       {formVisible && (
         <FormComponent
           onSubmit={fetchReservations}
-          userId={userId} // Pass userId to FormComponent
-          selectedDate={selectedDate} // Pass selected date to FormComponent
+          userId={userId}
+          selectedDate={selectedDate}
         />
       )}
       <Container className="mt-4">
@@ -195,7 +237,12 @@ const WorkerWeekdays = ({ userId }) => {
               {reservation.reservationDate} - Desk ID: {reservation.deskId}{" "}
               <Button
                 variant="danger"
-                onClick={() => handleSilClick(reservation.id)}
+                onClick={() =>
+                  handleSilClick(
+                    reservation.id,
+                    new Date(reservation.reservationDate)
+                  )
+                }
               >
                 Sil
               </Button>

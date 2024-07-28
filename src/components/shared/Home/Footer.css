@@ -1,0 +1,64 @@
+.footer {
+  background-color: #003366; /* Mavi arka plan rengi */
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-section {
+  flex: 1 1 300px;
+  margin: 10px;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-column {
+  margin-bottom: 20px;
+}
+
+.contact-column h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.contact-column p,
+.contact-column ul {
+  margin: 0;
+}
+
+.contact-column ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.contact-column ul li {
+  margin: 5px 0;
+}
+
+.trademark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1 1 100%;
+  margin-top: 20px;
+}
+
+.trademark p {
+  font-size: 0.8rem; /* Smaller font size */
+  font-style: italic; /* Italic text */
+}

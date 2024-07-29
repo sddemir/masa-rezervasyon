@@ -5,8 +5,6 @@ import "./Day.css";
 const Day = ({
   dayName,
   date,
-  onButtonClick1,
-  onButtonClick2,
   onGuncelleClick,
   onSilClick,
   isCurrentDay,

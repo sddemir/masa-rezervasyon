@@ -156,14 +156,23 @@ const Weekdays = () => {
 
   const isPastWeek = (monday) => {
     const today = new Date();
-    const endOfCurrentWeek = new Date(getMonday(today));
-    endOfCurrentWeek.setDate(endOfCurrentWeek.getDate() + 6); // End of the week (Sunday)
+    const endOfLastWeek = getMonday(today);
+    endOfLastWeek.setDate(endOfLastWeek.getDate() - 1); // End of last week (Saturday)
 
-    return monday < endOfCurrentWeek;
+    return monday <= endOfLastWeek;
+  };
+
+  const isWithinCurrentAndNextWeek = (monday) => {
+    const today = new Date();
+    const currentMonday = getMonday(today);
+    const nextMonday = getNextMonday(currentMonday);
+    const endOfNextWeek = new Date(nextMonday);
+    endOfNextWeek.setDate(nextMonday.getDate() + 6); // End of next week (Sunday)
+
+    return monday >= currentMonday && monday <= endOfNextWeek;
   };
 
   const weekDates = getCurrentWeekDates(currentMonday);
-  const isPast = !isPastWeek(currentMonday);
   const isFirstWeek = currentMonday.getTime() === firstWeekMonday.getTime();
 
   return (
@@ -200,7 +209,10 @@ const Weekdays = () => {
                 number={
                   numbers[weekDates[index].toISOString().split("T")[0]] || 0
                 }
-                disableButtons={!isPast}
+                disableButtons={
+                  isPastWeek(currentMonday) &&
+                  !isWithinCurrentAndNextWeek(weekDates[index])
+                }
               />
             </Col>
           ))}

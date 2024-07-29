@@ -7,7 +7,7 @@ import {
 } from "../../services/userService";
 import axios from "axios";
 
-const AddEmployee = () => {
+const AddEmployee = ({ addEmployee }) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -47,7 +47,8 @@ const AddEmployee = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createUser(formData);
+      const response = await createUser(formData);
+      addEmployee(response.data); // Update the parent component with the new employee
       setFormData({
         firstName: "",
         lastName: "",
@@ -57,7 +58,7 @@ const AddEmployee = () => {
         companyId: "",
         userRoleId: 1,
       });
-      alert("User added successfully!");
+      alert("Kullanıcı oluşturuldu!");
     } catch (error) {
       console.error("Error adding user:", error);
     }
@@ -65,12 +66,12 @@ const AddEmployee = () => {
 
   return (
     <Container>
-      <h2>Add Employee</h2>
+      {/* <h2>Add Employee</h2> */}
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col>
             <Form.Group controlId="formFirstName">
-              <Form.Label>First Name</Form.Label>
+              <Form.Label>Ad</Form.Label>
               <Form.Control
                 type="text"
                 name="firstName"
@@ -82,7 +83,7 @@ const AddEmployee = () => {
           </Col>
           <Col>
             <Form.Group controlId="formLastName">
-              <Form.Label>Last Name</Form.Label>
+              <Form.Label>Soyad</Form.Label>
               <Form.Control
                 type="text"
                 name="lastName"
@@ -104,7 +105,7 @@ const AddEmployee = () => {
           />
         </Form.Group>
         <Form.Group controlId="formPassword">
-          <Form.Label>Password</Form.Label>
+          <Form.Label>Şifre</Form.Label>
           <Form.Control
             type="password"
             name="password"
@@ -114,7 +115,7 @@ const AddEmployee = () => {
           />
         </Form.Group>
         <Form.Group controlId="formDepartment">
-          <Form.Label>Department</Form.Label>
+          <Form.Label>Departman</Form.Label>
           <Form.Control
             as="select"
             name="departmentId"
@@ -122,7 +123,7 @@ const AddEmployee = () => {
             onChange={handleInputChange}
             required
           >
-            <option value="">Select Department</option>
+            <option value="">Departman Seç</option>
             {departments.map((dept) => (
               <option key={dept.id} value={dept.id}>
                 {dept.departmentName}
@@ -131,7 +132,7 @@ const AddEmployee = () => {
           </Form.Control>
         </Form.Group>
         <Form.Group controlId="formCompany">
-          <Form.Label>Company</Form.Label>
+          <Form.Label>Şirket</Form.Label>
           <Form.Control
             as="select"
             name="companyId"
@@ -139,7 +140,7 @@ const AddEmployee = () => {
             onChange={handleInputChange}
             required
           >
-            <option value="">Select Company</option>
+            <option value="">Şirket Seç</option>
             {companies.map((comp) => (
               <option key={comp.id} value={comp.id}>
                 {comp.companyName}
@@ -148,7 +149,7 @@ const AddEmployee = () => {
           </Form.Control>
         </Form.Group>
         <Form.Group controlId="formUserRole">
-          <Form.Label>User Role</Form.Label>
+          <Form.Label>Kullanıcı Rolü</Form.Label>
           <Form.Check
             type="radio"
             label="Admin"
@@ -167,7 +168,7 @@ const AddEmployee = () => {
           />
         </Form.Group>
         <Button variant="primary" type="submit">
-          Add Employee
+          Çalışan Ekle
         </Button>
       </Form>
     </Container>

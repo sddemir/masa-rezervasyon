@@ -133,7 +133,7 @@ const FormComponent = ({
     );
 
     if (existingReservation) {
-      setError("This chair is already reserved for the selected date.");
+      setError("Bu masada rezervasyon zaten var.");
       setSuccess(false);
       return;
     }
@@ -163,7 +163,7 @@ const FormComponent = ({
       setSuccess(true);
       setError(null);
     } catch (error) {
-      setError("Failed to fetch reservations by worker.");
+      setError("Rezervasyonlar getirilemedi.");
       setSuccess(false);
     }
   };
@@ -195,12 +195,12 @@ const FormComponent = ({
           <Button variant="primary" onClick={handleShowCalisanSelect}>
             Çalışana Göre
           </Button>
-          <Button
+          {/* <Button
             variant="secondary"
             onClick={() => setShowCalisanSelect(false)}
           >
             Masaya Göre
-          </Button>
+          </Button> */}
           {showCalisanSelect && (
             <>
               <Form.Group controlId="calisanSelect">
@@ -219,7 +219,7 @@ const FormComponent = ({
                 </Form.Control>
               </Form.Group>
               <Button variant="primary" onClick={handleDeleteByWorker}>
-                Fetch Reservations
+                Rezervasyonları Getir
               </Button>
               {reservations.length > 0 && (
                 <ul>

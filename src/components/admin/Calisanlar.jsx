@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "react-bootstrap"; // Import Button from react-bootstrap
+import { Button } from "react-bootstrap";
 import DeleteEmployee from "./DeleteEmployee";
 import UpdateEmployee from "./UpdateEmployee";
 import AddEmployee from "./AddEmployee";
@@ -17,7 +17,7 @@ const Calisanlar = () => {
   const [companies, setCompanies] = useState([]);
   const [roles, setRoles] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showAddEmployee, setShowAddEmployee] = useState(false); // New state for form visibility
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
 
   useEffect(() => {
     // Fetch employees data from the backend
@@ -70,7 +70,11 @@ const Calisanlar = () => {
   };
 
   const handleToggleAddEmployee = () => {
-    setShowAddEmployee(!showAddEmployee); // Toggle form visibility
+    setShowAddEmployee(!showAddEmployee);
+  };
+
+  const addEmployee = (newEmployee) => {
+    setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
   };
 
   // Helper functions to get names
@@ -94,8 +98,7 @@ const Calisanlar = () => {
       <Button onClick={handleToggleAddEmployee} className="mb-3">
         {showAddEmployee ? "Kapat" : "Çalışan Ekle"}
       </Button>
-      {showAddEmployee && <AddEmployee />}{" "}
-      {/* Conditionally render AddEmployee */}
+      {showAddEmployee && <AddEmployee addEmployee={addEmployee} />}
       <table className="table">
         <thead>
           <tr>

@@ -8,6 +8,18 @@ import {
   deleteReservation,
 } from "../../../services/userService";
 
+const getMonday = (date) => {
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+  return new Date(date.setDate(diff));
+};
+
+const getNextMonday = (date) => {
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? 1 : 8 - day); // Next Monday
+  return new Date(date.setDate(diff));
+};
+
 const WorkerWeekdays = ({ userId }) => {
   const days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma"];
   const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
@@ -17,8 +29,10 @@ const WorkerWeekdays = ({ userId }) => {
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [firstWeekMonday, setFirstWeekMonday] = useState(getMonday(new Date()));
 
   useEffect(() => {
     fetchReservations();
@@ -26,19 +40,11 @@ const WorkerWeekdays = ({ userId }) => {
 
   useEffect(() => {
     checkNextWeekVisibility(currentMonday);
+    // Update the state of firstWeekMonday when the currentMonday changes
+    const today = new Date();
+    const firstMonday = getMonday(today);
+    setFirstWeekMonday(firstMonday);
   }, [currentMonday]);
-
-  function getMonday(date) {
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(date.setDate(diff));
-  }
-
-  function getNextMonday(date) {
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? 1 : 8 - day);
-    return new Date(date.setDate(diff));
-  }
 
   const getCurrentWeekDates = (monday) => {
     return days.map((_, index) => {
@@ -59,8 +65,6 @@ const WorkerWeekdays = ({ userId }) => {
     nextMonday.setDate(nextMonday.getDate() + 7);
     setCurrentMonday(nextMonday);
   };
-
-  const weekDates = getCurrentWeekDates(currentMonday);
 
   const handleGuncelleClick = (day, date) => {
     setSelectedDate(date);
@@ -86,6 +90,14 @@ const WorkerWeekdays = ({ userId }) => {
     }
   };
 
+  const checkNextWeekVisibility = (currentMondayDate) => {
+    const today = new Date();
+    const nextFriday = new Date(currentMondayDate);
+    nextFriday.setDate(currentMondayDate.getDate() + 4);
+
+    setNextWeekVisible(today >= nextFriday);
+  };
+
   const formatDateRange = (start, end) => {
     const options = { month: "2-digit", day: "2-digit", year: "2-digit" };
     return `${start.toLocaleDateString(
@@ -94,21 +106,26 @@ const WorkerWeekdays = ({ userId }) => {
     )} - ${end.toLocaleDateString(undefined, options)}`;
   };
 
-  const checkNextWeekVisibility = (currentMondayDate) => {
+  const isPastWeek = (monday) => {
     const today = new Date();
-    const nextFriday = new Date(currentMondayDate);
-    nextFriday.setDate(currentMondayDate.getDate() + 4); // Assuming Friday is 4 days after Monday
+    const endOfLastWeek = getMonday(today);
+    endOfLastWeek.setDate(endOfLastWeek.getDate() - 1); // End of last week (Saturday)
 
-    setNextWeekVisible(today >= nextFriday);
+    return monday <= endOfLastWeek;
   };
 
-  const isCurrentWeek =
-    currentMonday.getTime() === getMonday(new Date()).getTime();
-
-  const isDateInPast = (date) => {
+  const isWithinCurrentAndNextWeek = (monday) => {
     const today = new Date();
-    return today > date;
+    const currentMonday = getMonday(today);
+    const nextMonday = getNextMonday(currentMonday);
+    const endOfNextWeek = new Date(nextMonday);
+    endOfNextWeek.setDate(nextMonday.getDate() + 6); // End of next week (Sunday)
+
+    return monday >= currentMonday && monday <= endOfNextWeek;
   };
+
+  const weekDates = getCurrentWeekDates(currentMonday);
+  const isFirstWeek = currentMonday.getTime() === firstWeekMonday.getTime();
 
   const fetchReservations = async () => {
     try {
@@ -181,11 +198,13 @@ const WorkerWeekdays = ({ userId }) => {
     <Container>
       <Container className="weekdays-container">
         <div className="week-navigation text-center mb-4">
-          {!isCurrentWeek && (
-            <Button variant="outline-primary" onClick={handlePrevWeek}>
-              &lt;
-            </Button>
-          )}
+          <Button
+            variant="outline-primary"
+            onClick={handlePrevWeek}
+            disabled={isFirstWeek} // Disable when on the first week
+          >
+            &lt;
+          </Button>
           <span className="mx-3">
             {formatDateRange(weekDates[0], weekDates[4])}
           </span>
@@ -211,7 +230,10 @@ const WorkerWeekdays = ({ userId }) => {
                 number={
                   numbers[weekDates[index].toISOString().split("T")[0]] || 0
                 }
-                disableButtons={isDateInPast(weekDates[index])}
+                disableButtons={
+                  isPastWeek(currentMonday) &&
+                  !isWithinCurrentAndNextWeek(weekDates[index])
+                }
               />
             </Col>
           ))}

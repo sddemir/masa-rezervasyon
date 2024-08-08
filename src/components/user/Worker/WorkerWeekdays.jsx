@@ -189,8 +189,8 @@ const WorkerWeekdays = ({ userId }) => {
         setNumbers({});
       }
     } catch (error) {
-      console.error("Error fetching reservations:", error);
-      setError("Error fetching reservations");
+      console.error("Rezervasyonlar getirilemedi:", error);
+      setError("Rezervasyonlar getirilemedi");
     }
   };
 
@@ -247,16 +247,14 @@ const WorkerWeekdays = ({ userId }) => {
         />
       )}
       <Container className="mt-4">
-        <h4>My Reservations</h4>
+        <h4>Rezervasyonlarım</h4>
         {error && <Alert variant="danger">{error}</Alert>}
-        {success && (
-          <Alert variant="success">Reservation deleted successfully!</Alert>
-        )}
+        {success && <Alert variant="success">Rezervasyon silindi!</Alert>}
         <ul>
-          {filteredReservations.length === 0 && <li>No reservations found.</li>}
+          {filteredReservations.length === 0 && <li>Hiç rezervasyon yok.</li>}
           {filteredReservations.map((reservation) => (
             <li key={reservation.id}>
-              {reservation.reservationDate} - Desk ID: {reservation.deskId}{" "}
+              {reservation.reservationDate} - Masa ID: {reservation.deskId}{" "}
               <Button
                 variant="danger"
                 onClick={() =>

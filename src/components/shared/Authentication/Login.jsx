@@ -16,7 +16,7 @@ const Login = ({ onLogin }) => {
       onLogin(user); // Pass the user object which includes user ID
       navigate("/home");
     } catch (error) {
-      setError("Invalid credentials. Please try again.");
+      setError("Yanlış kullanıcı bilgileri. Lütfen tekrar deneyin.");
     }
   };
 
@@ -24,10 +24,10 @@ const Login = ({ onLogin }) => {
     <Container className="login-container">
       <Form className="login-form" onSubmit={handleSubmit}>
         <Form.Group controlId="formEmail">
-          <Form.Label>Email address</Form.Label>
+          <Form.Label>Email adresi</Form.Label>
           <Form.Control
             type="email"
-            placeholder="Enter email"
+            placeholder="Email giriniz."
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -35,10 +35,10 @@ const Login = ({ onLogin }) => {
         </Form.Group>
 
         <Form.Group controlId="formPassword">
-          <Form.Label>Password</Form.Label>
+          <Form.Label>Şifre</Form.Label>
           <Form.Control
             type="password"
-            placeholder="Password"
+            placeholder="Şifre giriniz."
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -46,7 +46,7 @@ const Login = ({ onLogin }) => {
         </Form.Group>
 
         <Button variant="primary" type="submit">
-          Login
+          Giriş
         </Button>
 
         {error && <p className="text-danger">{error}</p>}
